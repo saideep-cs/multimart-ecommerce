@@ -1,5 +1,4 @@
 import Select from 'react-select';
-import { products } from '../utils/products';
 
 const options = [
     { value: "sofa", label: "Sofa" },
@@ -35,9 +34,14 @@ const customStyles = {
     }),
 };
 
-const FilterSelect = ({setFilterList}) => {
+const FilterSelect = ({setFilterList, products = []}) => {
     const handleChange = (selectedOption)=> {
-        setFilterList(products.filter(item => item.category ===selectedOption.value))
+        if (!selectedOption || !selectedOption.value) {
+            // Show all products if no filter selected
+            setFilterList(products);
+        } else {
+            setFilterList(products.filter(item => item.category === selectedOption.value));
+        }
     }
     return (
     <Select
