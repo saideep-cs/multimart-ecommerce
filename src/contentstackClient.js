@@ -28,18 +28,30 @@ export const managementApiRequest = async (endpoint, options = {}) => {
 
   const url = `${MANAGEMENT_API_BASE_URL}${endpoint}`;
   
-  // Build query parameters
-  const queryParams = new URLSearchParams();
-  if (config.environment) {
-    // queryParams.append('environment', config.environment);
-  }
+  // Parse existing query parameters from the endpoint URL
+  const urlParts = url.split('?');
+  const baseUrl = urlParts[0];
+  const existingQuery = urlParts[1] || '';
+  
+  // Build query parameters - merge with existing ones
+  // Use URLSearchParams to properly handle encoding
+  const queryParams = new URLSearchParams(existingQuery);
+  
+  // Add branch parameter if configured
   if (config.branch) {
-    queryParams.append('branch', config.branch);
+    // Only add if not already present
+    if (!queryParams.has('branch')) {
+      queryParams.append('branch', config.branch);
+    }
   }
   
+  // Build the final URL with query parameters
   const fullUrl = queryParams.toString() 
-    ? `${url}?${queryParams.toString()}` 
-    : url;
+    ? `${baseUrl}?${queryParams.toString()}` 
+    : baseUrl;
+  
+  // Log the request URL for debugging (without sensitive tokens)
+  console.log(`🌐 API Request URL: ${baseUrl}${queryParams.toString() ? '?' + queryParams.toString().substring(0, 200) + '...' : ''}`);
 
   const headers = {
     'api_key': config.apiKey,
@@ -48,21 +60,42 @@ export const managementApiRequest = async (endpoint, options = {}) => {
     ...options.headers,
   };
 
+  console.log(`📤 Making API request to: ${baseUrl}`);
+  console.log(`📤 Request method: ${options.method || 'GET'}`);
+  console.log(`📤 Headers:`, Object.keys(headers).filter(k => k !== 'authorization' && k !== 'api_key'));
+
   const response = await fetch(fullUrl, {
     ...options,
     headers,
   });
 
+  console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.error_message || 
+    let errorData = {};
+    try {
+      const text = await response.text();
+      console.error(`❌ Error response body:`, text);
+      errorData = JSON.parse(text);
+    } catch (e) {
+      console.error(`❌ Could not parse error response:`, e);
+    }
+    
+    const errorMessage = errorData.error_message || 
       errorData.error || 
-      `Contentstack API error: ${response.status} ${response.statusText}`
-    );
+      errorData.message ||
+      `Contentstack API error: ${response.status} ${response.statusText}`;
+    
+    console.error(`❌ API Error:`, errorMessage);
+    console.error(`❌ Full error data:`, errorData);
+    
+    throw new Error(errorMessage);
   }
 
-  return await response.json();
+  const responseData = await response.json();
+  console.log(`✅ API request successful`);
+  
+  return responseData;
 };
 
 const contentstackClient = {
@@ -71,3 +104,4 @@ const contentstackClient = {
 };
 
 export default contentstackClient;
+export { getConfig };
