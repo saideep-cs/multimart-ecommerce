@@ -31,5 +31,8 @@ The application fetches product and page content from Contentstack CMS, uses DAM
 ## Demo Video
 👉 https://drive.google.com/file/d/1QQLbXm43P7s8bYsbG6RjpM1l_PH02_DZ/view
 
+## Presentation Slides
+👉 https://docs.google.com/presentation/d/1PLt5lRweQqqwcG2wWmjPAJeBXNQlZJH-f2WA-gHYoR0/edit?usp=sharing
+
 ## Notes
 This project focuses on a realistic e-commerce use case and intentionally uses Contentstack products where they naturally fit into the experience. Additional products such as Personalize or Data & Insights can be integrated as future enhancements.
